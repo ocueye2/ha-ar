@@ -57,7 +57,7 @@ The current MVP stores configuration, image data, compiled `.mind` target data, 
 - The same browser profile retains its devices after container restarts.
 - A different browser/device has its own configuration.
 - Clearing site data removes the local configuration and login session.
-- Large or numerous reference images may exceed browser local-storage limits. Keep images reasonably sized and use a small number of targets.
+- Reference photos are shrunk to 640px (JPEG) when added, and the compiled target file is stored alongside them, so each device costs roughly 100–300 KB of the browser's ~5 MB local-storage limit. If storage fills up, delete a device to make room.
 
 ## Notes / limitations
 
