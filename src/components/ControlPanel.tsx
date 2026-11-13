@@ -3,6 +3,7 @@ import { Power, Sun, Thermometer, X, Palette, Play, Pause, ChevronUp, ChevronDow
 import type { ARDevice, EntityState } from '../types';
 import type { Connection } from 'home-assistant-js-websocket';
 import { service } from '../lib/homeAssistant';
+import { lightSupportsColor, currentColorHex, colorServiceData } from '../lib/color';
 type Props = { device: ARDevice; entity?: EntityState; connection: Connection; onClose: () => void };
 export function ControlPanel({ device, entity, connection, onClose }: Props) {
   const [busy, setBusy] = useState(false);
@@ -18,6 +19,8 @@ export function ControlPanel({ device, entity, connection, onClose }: Props) {
   const toggle = () => run(entity?.state === 'on' || entity?.state === 'playing' ? 'turn_off' : 'turn_on');
   const brightness = Number(attrs.brightness ?? 0);
   const isLight = domain === 'light';
+  const supportsColor = isLight && lightSupportsColor(attrs);
+  const currentHex = supportsColor ? currentColorHex(attrs) : '#ffffff';
   const isClimate = domain === 'climate';
   const isCover = domain === 'cover';
   const isMedia = domain === 'media_player';
@@ -26,7 +29,7 @@ export function ControlPanel({ device, entity, connection, onClose }: Props) {
     <div className="panel-actions">
       {!isClimate && !isCover && !isMedia && <button className={`power-control ${entity?.state === 'on' ? 'active' : ''}`} disabled={busy || !entity} onClick={toggle}><Power size={22}/><span>{entity?.state === 'on' ? 'Turn off' : 'Turn on'}</span></button>}
       {isClimate && <><div className="value-row"><Thermometer/><strong>{attrs.current_temperature ?? '--'}°</strong><span>Current</span></div><label className="field-label">TARGET TEMPERATURE <b>{attrs.temperature ?? '--'}°</b></label><input type="range" min={attrs.min_temp ?? 7} max={attrs.max_temp ?? 35} step="0.5" value={attrs.temperature ?? 20} onChange={e => run('set_temperature', { temperature: Number(e.target.value) })}/><select value={attrs.hvac_mode ?? 'off'} onChange={e => run('set_hvac_mode', { hvac_mode: e.target.value })}>{(attrs.hvac_modes ?? ['off','heat','cool','auto']).map((m: string) => <option key={m}>{m}</option>)}</select></>}
-      {isLight && <><label className="field-label"><span><Sun size={15}/> BRIGHTNESS</span><b>{Math.round(brightness / 255 * 100)}%</b></label><input type="range" min="1" max="255" value={brightness || 1} onChange={e => run('turn_on', { brightness: Number(e.target.value) })}/><button className="secondary-action" onClick={() => run('turn_on', { color_temp_kelvin: 3000 })}><Palette size={17}/> Warm white</button></>}
+      {isLight && <><label className="field-label"><span><Sun size={15}/> BRIGHTNESS</span><b>{Math.round(brightness / 255 * 100)}%</b></label><input type="range" min="1" max="255" value={brightness || 1} onChange={e => run('turn_on', { brightness: Number(e.target.value) })}/>{supportsColor && <><label className="field-label"><span><Palette size={15}/> COLOUR</span><b>{currentHex.toUpperCase()}</b></label><div className="color-row"><input type="color" value={currentHex} disabled={busy || !entity} onChange={e => run('turn_on', colorServiceData(e.target.value, attrs))} aria-label="Pick a colour"/><div className="color-swatches">{['#ff5349','#ff9f1c','#ffe66d','#4ade80','#38bdf8','#a78bfa','#ff7ad9'].map(c => <button key={c} className="color-swatch" style={{ background: c }} disabled={busy || !entity} onClick={() => run('turn_on', colorServiceData(c, attrs))} aria-label={`Set colour ${c}`} />)}</div></div></>}<button className="secondary-action" onClick={() => run('turn_on', { color_temp_kelvin: 3000 })}><Palette size={17}/> Warm white</button></>}
       {isCover && <div className="cover-actions"><button onClick={() => run('open_cover')}><ChevronUp/> Open</button><button onClick={() => run('stop_cover')}>Stop</button><button onClick={() => run('close_cover')}><ChevronDown/> Close</button></div>}
       {isMedia && <div className="cover-actions"><button onClick={() => run('media_play')}><Play/> Play</button><button onClick={() => run('media_pause')}><Pause/> Pause</button><button onClick={() => run('media_stop')}>Stop</button></div>}
     </div>

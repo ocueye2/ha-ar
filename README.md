@@ -11,7 +11,7 @@ A self-hosted, mobile-first AR control panel for Home Assistant. The app runs as
 - Add an AR device by choosing an HA entity and capturing/uploading a reference image.
 - Compile image targets in the browser and save configuration locally.
 - Camera view with MindAR image tracking and live device overlay controls.
-- Basic light, climate, cover, media-player and switch controls.
+- Basic light, climate, cover, media-player and switch controls, with a colour picker and swatches for lights that support colour.
 - Docker Compose deployment with Nginx and a health endpoint.
 
 ## Run with Docker
