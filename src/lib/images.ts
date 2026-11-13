@@ -7,15 +7,21 @@
 export const MAX_REFERENCE_EDGE = 640;
 export const REFERENCE_JPEG_QUALITY = 0.82;
 
+// Pure resize math, factored out of downscaleImage so it can be tested
+// without a DOM: scale the long edge down to MAX_REFERENCE_EDGE, never
+// upscale, and never round a dimension down to zero.
+export function scaledDimensions(width: number, height: number): [number, number] {
+  const scale = Math.min(1, MAX_REFERENCE_EDGE / Math.max(width, height));
+  return [Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))];
+}
+
 export function downscaleImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       try {
-        const scale = Math.min(1, MAX_REFERENCE_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
-        const w = Math.max(1, Math.round(img.naturalWidth * scale));
-        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const [w, h] = scaledDimensions(img.naturalWidth, img.naturalHeight);
         const canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
