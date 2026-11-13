@@ -16,6 +16,16 @@ A self-hosted, mobile-first AR control panel for Home Assistant. The app runs as
 
 ## Run with Docker
 
+A prebuilt image is published to GitHub Container Registry on every push to `main`:
+
+```bash
+docker run -d --name homeassistant-ar -p 8085:80 ghcr.io/ocueye2/ha-ar:latest
+```
+
+Package page: https://github.com/ocueye2/ha-ar/pkgs/container/ha-ar
+
+Or build it yourself:
+
 ```bash
 git clone <your-repository-url> homeassistant-ar
 cd homeassistant-ar
