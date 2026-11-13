@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e13">
+<title>HA AR Control — point, tap, control</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🥽</div>
+    <div><h1>HA AR Control</h1><p>Point your camera. Controls float over the thing.</p></div>
+    <div class="status"><span class="dot" id="haDot"></span><span id="haStatus">checking…</span><br><span id="refCount"></span><br><span class="muted" id="keyNote">🔒 HA key is server-side only</span></div>
+  </header>
+
+  <nav class="tabs">
+    <button id="tabArBtn" class="active" onclick="showTab('ar')">🥽 AR View</button>
+    <button id="tabLibBtn" onclick="showTab('library')">🗂️ Library</button>
+    <button id="tabSetBtn" onclick="showTab('settings')">⚙️ Settings</button>
+  </nav>
+
+  <!-- ============ AR ============ -->
+  <section id="tab-ar">
+    <div class="ar-stage">
+      <video id="arVideo" playsinline autoplay muted></video>
+      <canvas id="arCanvas" class="hidden"></canvas>
+      <div class="ar-scanline" id="scanline"></div>
+      <div class="ar-chip" id="arChip">Camera off — tap Start AR</div>
+      <div class="ar-overlay" id="arOverlay"></div>
+      <div class="ar-candidates" id="arCandidates"></div>
+    </div>
+    <div class="ar-controls">
+      <button class="btn block" id="startArBtn" onclick="startAR()">▶ Start AR camera</button>
+      <button class="btn secondary block hidden" id="stopArBtn" onclick="stopAR()">⏸ Stop camera</button>
+      <p class="muted" id="arHint">Live view: every ~1.2s a small frame is sent to <i>this server</i> for matching — never to a cloud. When it recognises an object, its controls pop up over the video. Tap 🔒 Lock to hold a device while you adjust it.</p>
+      <div class="row">
+        <button class="btn secondary" onclick="captureStill()">📷 Snap &amp; match once</button>
+        <button class="btn secondary" onclick="unlockAR()">🔓 Unlock</button>
+      </div>
+      <input id="stillFile" type="file" accept="image/*" capture="environment" class="hidden">
+    </div>
+    <div id="matchBox"></div>
+  </section>
+
+  <!-- ============ LIBRARY ============ -->
+  <section id="tab-library" class="hidden">
+    <div class="card">
+      <h2>Add an object</h2>
+      <p class="hint">Photograph it, name it, pick what it controls. Up to 5 photos per object — different angles help a lot.</p>
+      <label>Name</label>
+      <input id="newName" type="text" placeholder="e.g. Bed lamp" autocomplete="off">
+      <label>Controls</label>
+      <select id="newTarget"></select>
+      <p class="muted" id="entityNote"></p>
+      <label>Reference photo(s)</label>
+      <input id="newPhotos" type="file" accept="image/*" multiple>
+      <div style="height:12px"></div>
+      <button class="btn block" id="saveRefBtn" onclick="saveRef()">Save reference</button>
+    </div>
+    <div id="refList"></div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>Home Assistant — server-side key</h2>
+      <p class="hint">🔒 <b>There is no token field here on purpose.</b> The HA long-lived token lives only on the server — set <code>HA_TOKEN</code> in <code>docker-compose.yml</code> env, or as a Docker secret at <code>/run/secrets/ha_token</code>. It is never sent to, stored in, or typed into the browser. The browser only sends an entity_id + action; this server adds the token when it calls HA.</p>
+      <p class="muted" id="serverKeyStatus">Checking server key…</p>
+      <label>Match threshold — <span id="thrVal">0.55</span> (lower = more matches, more mistakes)</label>
+      <input id="setThreshold" type="range" min="0.3" max="0.85" step="0.05" value="0.55"
+             oninput="document.getElementById('thrVal').textContent=this.value">
+      <label><input id="setClip" type="checkbox" style="width:auto"> Use CLIP embeddings when available (better matching, needs torch — off by default)</label>
+      <div style="height:12px"></div>
+      <button class="btn block" onclick="saveSettings()">Save settings</button>
+      <p class="muted">To rotate the key: create a new token in HA → Profile → Security, update <code>HA_TOKEN</code> on the server and restart the container. No browser change needed.</p>
+    </div>
+    <div class="card">
+      <h2>Status</h2>
+      <pre id="healthBox" class="muted" style="white-space:pre-wrap">…</pre>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

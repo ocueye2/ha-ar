@@ -1,0 +1,33 @@
+services:
+  ha-ar-control:
+    build: .
+    image: ha-ar-control:latest
+    container_name: ha-ar-control
+    restart: unless-stopped
+    ports:
+      # AR website on http://<host>:8100 — open this on your phone.
+      # NOTE: phone camera (getUserMedia) needs HTTPS on a real phone,
+      # or localhost. Put this behind your Cloudflare Tunnel / Caddy
+      # with HTTPS, or use it on your LAN over https.
+      - "8100:8100"
+    environment:
+      # --- Home Assistant — SERVER-SIDE ONLY ---
+      # The HA long-lived token is NEVER entered in the browser.
+      # Set it here (env) OR as a Docker secret (see secrets below).
+      # HA → your profile → Security → Long-lived access tokens → Create.
+      HA_URL: "${HA_URL:-http://homeassistant.local:8123}"
+      HA_TOKEN: "${HA_TOKEN:-}"
+      # HA_TOKEN_FILE: /run/secrets/ha_token   # uncomment to use the secret instead
+      - PORT=8100
+    # Preferred: Docker secret — token never appears in `docker inspect` env.
+    # Create it with: printf 'YOUR_TOKEN' | docker secret create ha_token -
+    # (Swarm) or mount a file: see ha_token file option in README.
+    # secrets:
+    #   - ha_token
+    volumes:
+      # Reference photos + fingerprints + match settings survive restarts.
+      # NOTE: ./data does NOT contain the HA token in this app.
+      - ./data:/data
+# secrets:
+#   ha_token:
+#     external: true
