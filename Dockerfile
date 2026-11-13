@@ -29,6 +29,10 @@ FROM nginx:alpine
 
 # Copy built React application into Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
+# Without this, nginx.conf in the repo was never used: /health 404'd (so the
+# compose healthcheck never passed), SPA deep links 404'd, and the
+# Permissions-Policy camera header was never sent.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Nginx listens on port 80
 EXPOSE 80
