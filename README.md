@@ -70,6 +70,12 @@ The current MVP stores configuration, image data, compiled `.mind` target data, 
 
 ## Development
 
+Use Node 22 (see `.nvmrc` — the Dockerfile builds with node:22 too). On newer
+Node, `npm install` fails building the `canvas` native module (mind-ar
+dependency) because there is no prebuilt binary for it; on Node 22 install
+with `npm install --ignore-scripts` if the native build is not needed, since
+the browser build does not use it.
+
 ```bash
 npm install
 npm run dev
